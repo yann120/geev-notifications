@@ -53,7 +53,7 @@ class GeevBot
       @requests.each do |request|
         search_results = GeevApi.search(request)
         if @results[request[:keywords]]
-          fresh_new_results = search_results['ads'].reject {|result| @results[request[:keywords]].include? result['_id']}
+          fresh_new_results = search_results['ads'].reject {|result| @results[request[:keywords]].include?(result['_id']) || result['last_update_timestamp'] < Time.now.to_i  - 86400 }
           if fresh_new_results.any?
             fresh_new_results.each do |new_result|
               picture = "https://images.geev.fr/#{new_result['pictures'].first}/squares/300"
