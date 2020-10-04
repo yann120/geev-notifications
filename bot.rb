@@ -1,4 +1,4 @@
-require 'HTTParty'
+require 'httparty'
 require 'airrecord'
 require 'telegram/bot'
 require 'dotenv/load'
