@@ -45,6 +45,7 @@ class GeevBot
   def initialize
     refresh
     @results = {}
+    @already_notified = []
     @notif = NotifyUser.new
   end
 
@@ -53,12 +54,17 @@ class GeevBot
       @requests.each do |request|
         search_results = GeevApi.search(request)
         if @results[request[:keywords]]
-          fresh_new_results = search_results['ads'].reject {|result| @results[request[:keywords]].include?(result['_id']) || result['last_update_timestamp'] < Time.now.to_i  - 86400 }
+          fresh_new_results = search_results['ads'].reject do |result| 
+            @results[request[:keywords]].include?(result['_id']) || 
+            @already_notified.include?(result['_id']) ||
+            result['last_update_timestamp'] < Time.now.to_i  - 86400
+          end
           if fresh_new_results.any?
             fresh_new_results.each do |new_result|
               picture = "https://images.geev.fr/#{new_result['pictures'].first}/squares/300"
               url = "https://www.geev.com/fr/annonce/s/s/#{new_result['_id']}"
               @notif.send_notification("#{new_result['title']}\n#{picture}\n#{url}")
+              @already_notified << new_result['_id']
             end
           end
         end
