@@ -14,7 +14,11 @@ class GeevApi
     return if !search_params[:keywords] || !search_params[:location]
 
     query = DEFAULT_SEARCH_PARAMS.merge(search_params)
-    HTTParty.get(SEARCH_URL, query: query)
+    begin
+      HTTParty.get(SEARCH_URL, query: query)
+    rescue
+      {'ads' => []}
+    end
   end
 end
 
@@ -24,7 +28,11 @@ class SearchRequests < Airrecord::Table
   self.table_name = ENV['AIRTABLE_TABLE_NAME']
 
   def self.all_requests
-    self.all.map{ |line| {keywords: line['keywords'], location: line['location']}}
+    begin
+      self.all.map{ |line| {keywords: line['keywords'], location: line['location']}}
+    rescue
+      []
+    end
   end
 end
 
@@ -37,7 +45,9 @@ class NotifyUser
     @client.bot == Telegram.bots[:default] # true
   end
   def send_notification(title)
-    @client.bot.send_message(chat_id: ENV['TELEGRAM_USER_ID'], text: title, parse_mode: :HTML)
+    begin
+      @client.bot.send_message(chat_id: ENV['TELEGRAM_USER_ID'], text: title, parse_mode: :HTML)
+    end
   end
 end
 
@@ -54,7 +64,7 @@ class GeevBot
       @requests.each do |request|
         search_results = GeevApi.search(request)
         if @results[request[:keywords]]
-          fresh_new_results = search_results['ads'].reject do |result| 
+          fresh_new_results = search_results['ads']&.reject do |result| 
             @results[request[:keywords]].include?(result['_id']) || 
             @already_notified.include?(result['_id']) ||
             result['last_update_timestamp'] < Time.now.to_i  - 86400
