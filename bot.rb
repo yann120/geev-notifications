@@ -69,7 +69,7 @@ class GeevBot
             @already_notified.include?(result['_id']) ||
             result['last_update_timestamp'] < Time.now.to_i  - 86400
           end
-          if fresh_new_results.any?
+          if fresh_new_results&.any?
             fresh_new_results.each do |new_result|
               picture = "https://images.geev.fr/#{new_result['pictures'].first}/squares/300"
               url = "https://www.geev.com/fr/annonce/s/s/#{new_result['_id']}"
