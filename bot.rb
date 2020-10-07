@@ -79,7 +79,7 @@ class GeevBot
           end
         end
         @results[request[:keywords]] = search_results['ads'].map { |result| result['_id']}
-        sleep(60)
+        sleep(20)
       end
       refresh if @next_refresh < Time.now
     end
